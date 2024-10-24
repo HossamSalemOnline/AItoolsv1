@@ -1,12 +1,19 @@
 import React, { useState } from 'react';
-import { Search, Moon, Sun, Brain, Star, ExternalLink } from 'lucide-react';
+import { Search, Moon, Sun, Brain, Star, ExternalLink, Image, Video, Type, Code, Music, Grid, ChevronRight, Eye } from 'lucide-react';
 import { BrowserRouter as Router, Route, Link, Routes } from 'react-router-dom';
 import Resources from './components/Resources';
 import AINews from './components/AINews';
 import Videos from './components/Videos';
 import Bookmarks from './components/Bookmarks';
 
-const categories = ["Image", "Video", "Content", "Coding", "Audio", "Others"];
+const categories = [
+  { name: "Image", icon: <Image className="w-4 h-4" /> },
+  { name: "Video", icon: <Video className="w-4 h-4" /> },
+  { name: "Content", icon: <Type className="w-4 h-4" /> },
+  { name: "Coding", icon: <Code className="w-4 h-4" /> },
+  { name: "Audio", icon: <Music className="w-4 h-4" /> },
+  { name: "Others", icon: <Grid className="w-4 h-4" /> }
+];
 
 const initialTools = [
   { id: 1, name: "DALL-E 2", description: "AI system that creates realistic images and art from natural language descriptions.", category: "Image", favorite: false, url: "https://openai.com/dall-e-2", image: "https://via.placeholder.com/120x80" },
@@ -26,6 +33,7 @@ const EliteAIToolsUI = () => {
   const [selectedCategory, setSelectedCategory] = useState('');
   const [tools, setTools] = useState(initialTools);
   const [sortBy, setSortBy] = useState('name');
+  const [visibleTools, setVisibleTools] = useState(6);
 
   const filteredTools = tools
     .filter(tool => 
@@ -45,6 +53,10 @@ const EliteAIToolsUI = () => {
     setTools(tools.map(tool => 
       tool.id === id ? { ...tool, favorite: !tool.favorite } : tool
     ));
+  };
+
+  const loadMore = () => {
+    setVisibleTools(prev => prev + 6);
   };
 
   return (
@@ -99,19 +111,20 @@ const EliteAIToolsUI = () => {
                   </div>
 
                   <div className="flex flex-wrap justify-center gap-4 mb-8">
-                    {categories.map((category) => (
+                    {categories.map(({ name, icon }) => (
                       <button
-                        key={category}
-                        className={`px-6 py-2 rounded-full font-medium transition-all duration-200 transform hover:scale-105 ${
-                          selectedCategory === category
+                        key={name}
+                        className={`px-6 py-2 rounded-full font-medium transition-all duration-200 transform hover:scale-105 flex items-center space-x-2 ${
+                          selectedCategory === name
                             ? 'bg-indigo-600 text-white shadow-lg'
                             : darkMode
                             ? 'bg-gray-800 text-white hover:bg-gray-700'
                             : 'bg-white text-gray-800 hover:bg-gray-100 shadow'
                         }`}
-                        onClick={() => setSelectedCategory(category === selectedCategory ? '' : category)}
+                        onClick={() => setSelectedCategory(name === selectedCategory ? '' : name)}
                       >
-                        {category}
+                        {icon}
+                        <span>{name}</span>
                       </button>
                     ))}
                   </div>
@@ -130,7 +143,7 @@ const EliteAIToolsUI = () => {
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {filteredTools.map((tool) => (
+                    {filteredTools.slice(0, visibleTools).map((tool) => (
                       <div 
                         key={tool.id} 
                         className={`rounded-lg p-6 flex flex-col ${
@@ -151,10 +164,11 @@ const EliteAIToolsUI = () => {
                                 <Star className={tool.favorite ? "fill-current" : ""} />
                               </button>
                             </div>
-                            <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium mt-2 ${
+                            <span className={`inline-flex items-center space-x-1 px-3 py-1 rounded-full text-sm font-medium mt-2 ${
                               darkMode ? 'bg-gray-700 text-indigo-300' : 'bg-indigo-100 text-indigo-800'
                             }`}>
-                              {tool.category}
+                              {categories.find(cat => cat.name === tool.category)?.icon}
+                              <span>{tool.category}</span>
                             </span>
                           </div>
                         </div>
@@ -172,6 +186,19 @@ const EliteAIToolsUI = () => {
                       </div>
                     ))}
                   </div>
+
+                  {filteredTools.length > visibleTools && (
+                    <div className="text-center mt-8">
+                      <button
+                        onClick={loadMore}
+                        className="inline-flex items-center space-x-2 px-6 py-3 rounded-full bg-indigo-600 text-white hover:bg-indigo-700 transition-all duration-200 transform hover:scale-105"
+                      >
+                        <Eye className="w-4 h-4" />
+                        <span>View More</span>
+                        <ChevronRight className="w-4 h-4" />
+                      </button>
+                    </div>
+                  )}
                 </>
               } />
               <Route path="/resources" element={<Resources />} />
